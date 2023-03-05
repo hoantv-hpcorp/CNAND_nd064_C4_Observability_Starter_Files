@@ -1,0 +1,152 @@
+vagrant scp ~/Downloads/helm-v3.11.1-linux-amd64.tar.gz default:~
+vagrant ssh
+
+kubectl version
+exit
+ls -l
+tar -xzvf helm-v3.11.1-linux-amd64.tar.gz 
+mv linux-amd64/helm /usr/local/bin/helm
+sudo mv linux-amd64/helm /usr/local/bin/helm
+kubectl create namespace monitoring
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo add stable https://charts.helm.sh/stable
+helm repo update
+cat /etc/rancher/k3s/k3s.yaml
+helm install prometheus prometheus-community/kube-prometheus-stack --namespace monitoring --kubeconfig /etc/rancher/k3s/k3s.yaml
+kubectl get ns
+kubectl get deploy,svc,pod -n monitoring
+kubectl create namespace observability
+export jaeger_version=v1.28.0 
+kubectl create -f https://raw.githubusercontent.com/jaegertracing/jaeger-operator/${jaeger_version}/deploy/crds/jaegertracing.io_jaegers_crd.yaml
+kubectl create -n observability -f https://raw.githubusercontent.com/jaegertracing/jaeger-operator/${jaeger_version}/deploy/service_account.yaml
+kubectl create -n observability -f https://raw.githubusercontent.com/jaegertracing/jaeger-operator/${jaeger_version}/deploy/role.yaml
+kubectl create -n observability -f https://raw.githubusercontent.com/jaegertracing/jaeger-operator/${jaeger_version}/deploy/role_binding.yaml
+kubectl create -n observability -f https://raw.githubusercontent.com/jaegertracing/jaeger-operator/${jaeger_version}/deploy/operator.yaml
+kubectl create -f https://raw.githubusercontent.com/jaegertracing/jaeger-operator/${jaeger_version}/deploy/cluster_role.yaml
+kubectl create -f https://raw.githubusercontent.com/jaegertracing/jaeger-operator/${jaeger_version}/deploy/cluster_role_binding.yaml
+sudo ls -l /vagrant/
+sudo ls -l /vagrant/manifests/
+sudo ls -l /vagrant/manifests/app/
+sudo kubectl apply -f /vagrant/manifests/app/
+kubectl get pod -n monitoring
+kubectl port-forward service/prometheus-grafana --address 0.0.0.0 3000:80 -n monitoring
+kubectl port-forward service/prometheus-operated --address 0.0.0.0 9090:9090 -n monitoring
+kubectl port-forward service/do-visit-counter-backend --address 0.0.0.0 5000:5000
+       
+kubectl port-forward svc/frontend-service 8080:8080
+kubectl port-forward service/simplest-query --address 0.0.0.0 16686:16686
+   
+   kubectl exec --stdin --tty shell-demo -- /bin/bash
+
+   docker run -d -p 81:80 --name httpd-container httpd
+   docker run -d -p 5000:5000 --name be-container dadofbear/do-visit-counter-backend:v1
+   docker run -d -p 8000:8000 --name be-container dadofbear/do-visit-counter-frontend:v1
+   docker run -d -p 5000:5000 --name trial-container backend:latest
+
+kubectl create namespace observability
+kubectl create -f https://raw.githubusercontent.com/jaegertracing/jaeger-operator/${jaeger_version}/deploy/crds/jaegertracing.io_jaegers_crd.yaml # <2>
+kubectl create -f https://raw.githubusercontent.com/jaegertracing/jaeger-operator/${jaeger_version}/deploy/service_account.yaml
+kubectl create -f https://raw.githubusercontent.com/jaegertracing/jaeger-operator/${jaeger_version}/deploy/role.yaml
+kubectl create -f https://raw.githubusercontent.com/jaegertracing/jaeger-operator/${jaeger_version}/deploy/role_binding.yaml
+kubectl create -f https://raw.githubusercontent.com/jaegertracing/jaeger-operator/${jaeger_version}/deploy/operator.yaml
+   
+kubectl create -f https://raw.githubusercontent.com/jaegertracing/jaeger-operator/${jaeger_version}/deploy/cluster_role.yaml
+kubectl create -f https://raw.githubusercontent.com/jaegertracing/jaeger-operator/${jaeger_version}/deploy/cluster_role_binding.yaml
+   
+   gunicorn --access-logfile - --error-logfile - -w 4 -b 0.0.0.0:8080 app:app
+   
+   
+docker build -t dadofbear/do-visit-counter-frontend:v1 ./frontend
+docker push dadofbear/do-visit-counter-frontend:v1
+docker build -t dadofbear/do-visit-counter-backend:v1 ./backend
+docker push dadofbear/do-visit-counter-backend:v1
+
+docker build -t dadofbear/sample-app:latest .
+docker push dadofbear/sample-app:latest
+
+
+docker build -t dadofbear/do-visit-counter-frontend:v2 ./frontend
+docker push dadofbear/do-visit-counter-frontend:v2
+
+docker build -t dadofbear/do-visit-counter-backend:v2 ./backend
+docker push dadofbear/do-visit-counter-backend:v2
+docker build -t dadofbear/do-visit-counter-backend:v3 ./backend
+docker push dadofbear/do-visit-counter-backend:v3
+
+
+docker build -t sample-app:latest .
+docker run -d -p 5000:5000 --name sample-app sample-app:latest
+
+kubectl delete -f ./frontend/deploy_frontend.yaml
+kubectl delete -f ./backend/deploy_backend.yaml
+kubectl apply -f ./frontend/deploy_frontend.yaml
+kubectl apply -f ./backend/deploy_backend.yaml
+
+
+kubectl port-forward $(kubectl get pods -l=app="do-visit-counter-frontend" -o name) 8000:8000
+kubectl port-forward $(kubectl get pods -l=app="jaeger" -o name) 16686:16686
+
+docker stop fe-container
+docker rm fe-container
+docker build -t dadofbear/do-visit-counter-frontend:v1 ./frontend
+docker run -d -p 8001:8000 --name fe-container dadofbear/do-visit-counter-frontend:v1
+
+kubectl create -f https://raw.githubusercontent.com/jaegertracing/jaeger-operator/v1.28.0/deploy/crds/jaegertracing.io_jaegers_crd.yaml
+kubectl create -f https://raw.githubusercontent.com/jaegertracing/jaeger-operator/v1.28.0/deploy/service_account.yaml
+kubectl create -f https://raw.githubusercontent.com/jaegertracing/jaeger-operator/v1.28.0/deploy/role.yaml
+kubectl create -f https://raw.githubusercontent.com/jaegertracing/jaeger-operator/v1.28.0/deploy/role_binding.yaml
+kubectl create -f https://raw.githubusercontent.com/jaegertracing/jaeger-operator/v1.28.0/deploy/operator.yaml
+kubectl create -f https://raw.githubusercontent.com/jaegertracing/jaeger-operator/v1.28.0/deploy/cluster_role.yaml
+kubectl create -f https://raw.githubusercontent.com/jaegertracing/jaeger-operator/v1.28.0/deploy/cluster_role_binding.yaml
+ 
+kubectl apply -f - <<EOF
+apiVersion: jaegertracing.io/v1
+kind: Jaeger
+metadata:
+  name: simplest
+EOF
+
+
+	kubectl delete pods backend-7f9b7c87c5-sfn5c --grace-period=0 --force
+	kubectl delete pods svclb-backend-2fsch --grace-period=0 --force
+	kubectl delete pods backend-5674d45dc4-xjkss --grace-period=0 --force
+
+
+curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+kubectl create namespace monitoring
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo add stable https://charts.helm.sh/stable
+helm repo update
+helm install prometheus prometheus-community/kube-prometheus-stack --namespace monitoring --kubeconfig /etc/rancher/k3s/k3s.yaml
+
+kubectl port-forward service/prometheus-grafana --address 0.0.0.0 3000:80 -n monitoring
+
+docker build -t sample-app:latest .
+docker stop sample-app
+docker rm sample-app
+docker run -d -p 5000:5000 --name sample-app sample-app:latest
+docker ps -a
+
+app_request_count_total{http_status=~"$error_code", pod=~"$pod", method=~"$method", exported_endpoint=~"$endpoint"}
+app_request_count_total{http_status=~"4..|5..", pod=~"$pod"}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
