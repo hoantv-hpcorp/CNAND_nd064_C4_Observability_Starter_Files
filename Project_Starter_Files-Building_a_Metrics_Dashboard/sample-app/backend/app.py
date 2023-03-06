@@ -14,13 +14,21 @@ config = Config(
          'param': 1},
                         'logging': True,
                         'reporter_batch_size': 1,}, 
-                        service_name="service")
+                        service_name="backend")
 jaeger_tracer = config.initialize_tracer()
 tracing = FlaskTracing(jaeger_tracer, True, app)
 
+counter_value = 1
+
 @app.route("/")
 def index():
-  return "Test"
+  return "Test\n"
+
+@app.route("/get-ticket")
+def get_ticket():
+  global counter_value
+  counter_value += 1
+  return str(counter_value)
 
 @app.route("/system-error")
 def system_error():

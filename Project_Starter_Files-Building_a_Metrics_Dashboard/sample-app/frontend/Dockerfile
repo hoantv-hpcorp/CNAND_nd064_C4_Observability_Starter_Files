@@ -1,12 +1,10 @@
-FROM alpine:3.8
+FROM python:3.8.2-alpine
 
-RUN apk add --no-cache py3-pip python3 && \
-    pip3 install flask requests Flask-Opentracing jaeger-client
+RUN pip3 install --upgrade pip 
+RUN pip3 install --no-cache-dir Flask requests flask_prometheus_metrics Flask-Opentracing jaeger-client
 
-COPY . /usr/src/frontend
+COPY . /
 
-ENV FLASK_APP frontend.py
+EXPOSE 8000
 
-WORKDIR /usr/src/frontend
-
-CMD flask run --host=0.0.0.0 --port=8000
+CMD ["python", "frontend.py"]

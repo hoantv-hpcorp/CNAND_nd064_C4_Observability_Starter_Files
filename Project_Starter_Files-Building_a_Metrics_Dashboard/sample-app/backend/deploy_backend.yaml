@@ -11,7 +11,7 @@ metadata:
     name: backend
     release: prometheus
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: backend
@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: dadofbear/do-visit-counter-backend:v4
+          image: dadofbear/do-visit-counter-backend:v7
           imagePullPolicy: Always
           ports:
           - name: backendport

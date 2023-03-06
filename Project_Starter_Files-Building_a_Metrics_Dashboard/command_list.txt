@@ -65,17 +65,14 @@ docker build -t dadofbear/sample-app:latest .
 docker push dadofbear/sample-app:latest
 
 
-docker build -t dadofbear/do-visit-counter-frontend:v2 ./frontend
-docker push dadofbear/do-visit-counter-frontend:v2
-
-docker build -t dadofbear/do-visit-counter-backend:v2 ./backend
-docker push dadofbear/do-visit-counter-backend:v2
-docker build -t dadofbear/do-visit-counter-backend:v3 ./backend
-docker push dadofbear/do-visit-counter-backend:v3
+docker build -t dadofbear/do-visit-counter-frontend:v15 ./frontend
+docker push dadofbear/do-visit-counter-frontend:v15
+docker build -t dadofbear/do-visit-counter-backend:v7 ./backend
+docker push dadofbear/do-visit-counter-backend:v7
 
 
 docker build -t sample-app:latest .
-docker run -d -p 5000:5000 --name sample-app sample-app:latest
+docker run -d -p 8989:8000 --name sample-app sample-app:latest
 
 kubectl delete -f ./frontend/deploy_frontend.yaml
 kubectl delete -f ./backend/deploy_backend.yaml
@@ -99,7 +96,7 @@ kubectl create -f https://raw.githubusercontent.com/jaegertracing/jaeger-operato
 kubectl create -f https://raw.githubusercontent.com/jaegertracing/jaeger-operator/v1.28.0/deploy/cluster_role.yaml
 kubectl create -f https://raw.githubusercontent.com/jaegertracing/jaeger-operator/v1.28.0/deploy/cluster_role_binding.yaml
  
-kubectl apply -f - <<EOF
+kubectl delete -f - <<EOF
 apiVersion: jaegertracing.io/v1
 kind: Jaeger
 metadata:
@@ -107,9 +104,9 @@ metadata:
 EOF
 
 
-	kubectl delete pods backend-7f9b7c87c5-sfn5c --grace-period=0 --force
-	kubectl delete pods svclb-backend-2fsch --grace-period=0 --force
-	kubectl delete pods backend-5674d45dc4-xjkss --grace-period=0 --force
+	kubectl delete pods backend-6c747c5bd-w8bnd --grace-period=0 --force
+	kubectl delete pods frontend-86c4649997-rc8bj --grace-period=0 --force
+	kubectl delete pods frontend-fb88956b9-ctclb --grace-period=0 --force
 
 
 curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
@@ -131,22 +128,51 @@ app_request_count_total{http_status=~"$error_code", pod=~"$pod", method=~"$metho
 app_request_count_total{http_status=~"4..|5..", pod=~"$pod"}
 
 
+https://abirami-ece-09.medium.com/distributed-tracing-with-jaeger-on-kubernetes-b6364b3719d4
+By default, Jaeger Operator will watch the namespace where it installed. To look all namespaces, first download the operator.yaml file and provide WATCH_NAMESPACE value as empty as shown below.
+File Name: operator.yaml 
+      env:
+        - name: WATCH_NAMESPACE
+          value: ""
 
+export namespace=observability
+export jaeger_version=v1.28.0
 
+kubectl create namespace ${namespace}
+kubectl create -f jaegertracing.io_jaegers_crd.yaml
+kubectl create -n ${namespace} -f service_account.yaml
+kubectl create -n ${namespace} -f role.yaml
+kubectl create -n ${namespace} -f role_binding.yaml
+kubectl create -n ${namespace} -f operator.yaml
+kubectl create -f cluster_role.yaml
+kubectl create -f cluster_role_binding.yaml
 
+mkdir -p jaeger-tracing
+cat >> jaeger-tracing/jaeger.yaml <<EOF
+apiVersion: jaegertracing.io/v1
+kind: Jaeger
+metadata:
+  name: my-traces
+  namespace: ${namespace}
+EOF
+kubectl apply -n ${namespace} -f jaeger-tracing/jaeger.yaml
 
+kubectl get all -n ${namespace}
 
+kubectl port-forward -n ${namespace} \
+    $(kubectl get pods -n ${namespace} -l=app="jaeger" -o name) --address 0.0.0.0 16686:16686
 
+kubectl port-forward service/backend --address 0.0.0.0 5000:5000
+kubectl port-forward service/frontend --address 0.0.0.0 8000:8000
 
+kubectl port-forward pod/ffrontend-6f9cbf8fd8-ngqm7 8000:8000
 
+kubectl port-forward -n observability service/my-traces-query --address 0.0.0.0 16686:16686
 
-
-
-
-
-
-
-
-
+kubectl delete ${kubectl get pods  -l=app="frontend" -o name} --grace-period=0 --force
+for each in ${kubectl get pod -o jsonpath="{.items[*].metadata.name}" -l=app="frontend"};
+do 
+  kubectl delete pod $each
+done
 
 
