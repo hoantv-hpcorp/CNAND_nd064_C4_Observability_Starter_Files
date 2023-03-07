@@ -21,8 +21,17 @@
 ## Describe SLO/SLI
 *TODO:* Describe, in your own words, what the SLIs are, based on an SLO of *monthly uptime* and *request response time*.
 
+Since SLO is the expected performance of the system, SLIs are the actual measurement of *monthly uptime* and *request response time*. For example, at the end of the month, we observe that the total uptime in month is 99.9% and 99% of request response time is under 500ms.
+
 ## Creating SLI metrics.
 *TODO:* It is important to know why we want to measure certain metrics for our customer. Describe in detail 5 metrics to measure these SLIs. 
+
+Below are 5 metrics we may use to measure our system:
+- Total node/pod uptime in month
+- CPU usage
+- Memory usage
+- Average request response time
+- Maximum request response time
 
 ## Create a Dashboard to measure our SLIs
 *TODO:* Create a dashboard to measure the uptime of the frontend and backend services We will also want to measure to measure 40x and 50x errors. Create a dashboard that show these values over a 24 hour period and take a screenshot.
@@ -87,8 +96,37 @@ See the picture above for tracing span
 ## Creating SLIs and SLOs
 *TODO:* We want to create an SLO guaranteeing that our application has a 99.95% uptime per month. Name four SLIs that you would use to measure the success of this SLO.
 
+In order to achive SLO, we are going to monitoring these values:
+- CPU usage
+- Memory usage
+- Total request rate
+- Request response time
+
 ## Building KPIs for our plan
 *TODO*: Now that we have our SLIs and SLOs, create a list of 2-3 KPIs to accurately measure these metrics as well as a description of why those KPIs were chosen. We will make a dashboard for this, but first write them down here.
 
+The metrics are listed below; 
+- CPU usage
+  - Maximum CPU usage should be 70%. We need this to ensure that the system preseve enough computing resource to serve incoming request
+- Memory usage
+  -  Memory consumption of each service should be less than 256MB. This metrics indices that system can handle incoming request within allocated memory
+- Total request rate
+  - Request rate limit is 100 req/s. We have this metrics to make sure that one request will not have to wait to long in queue and also that the application have enough thread to process multiple request simultainiously
+- Request response time
+  - Average response time is 500ms. This metrics indicate that in general most of the requests will be served fast enough.
+  - Maximum request response time is 1s. We need to ensure that, even in the worst case, the clients don't have to wait to long to get the result
+
 ## Final Dashboard
 *TODO*: Create a Dashboard containing graphs that capture all the metrics of your KPIs and adequately representing your SLIs and SLOs. Include a screenshot of the dashboard here, and write a text description of what graphs are represented in the dashboard.  
+
+![Final dashboard 1](answer-img/TODO10_final_dashboard1.png?raw=true "Final dashboard 1")
+![Final dashboard 2](answer-img/TODO10_final_dashboard2.png?raw=true "Final dashboard 2")
+
+- *CPU Usage*: describe percentage of CPU usage for each service
+- *Process memory*: describe how much memory a service consumes
+- *Avegrage request response time*: describe in average how long a service need to handle the incoming requests 
+- *Total request rate*: mesure how many request were handled at a period of time
+- *System Error Requests*: a table listing Jaeger trace of the request which return 500 System Error. This will help to investigate the issue later
+- *Pod uptime*: measure how long the kubernetes pod is up to serve incoming requests
+- *40x and 50x error count*: this graphs summary the errornous request in our system.
+- *40x and 50x error count*: this one has similar purpose with previous graph. However by looking in to this graph we have an ideal of when and how many errornous requests are observed.  

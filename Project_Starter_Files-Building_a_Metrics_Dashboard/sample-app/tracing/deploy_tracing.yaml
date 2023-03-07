@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tracing
+  annotations:
+    "sidecar.jaegertracing.io/inject": "true"
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /metrics
+    prometheus.io/port: backendport
+  labels:
+    name: tracing
+    release: prometheus
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: tracing
+  template:
+    metadata:
+      labels:
+        app: tracing
+    spec:
+      containers:
+        - name: tracing
+          image: dadofbear/do-visit-counter-tracing:v2
+          imagePullPolicy: Always
+          env:
+            - name: COUNTER_ENDPOINT
+              value: "http://backend:5000"
+          ports:
+          - name: tracingport
+            containerPort: 8800
+            protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tracing
+  labels:
+    app: tracing
+spec:
+  selector:
+    app: tracing
+  ports:
+    - name: tracing
+      protocol: TCP
+      port: 8800
+      targetPort: tracingport
+  type: LoadBalancer
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: tracing
+  namespace: monitoring
+  labels:
+    app: tracing
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: tracing
+  endpoints:
+  - port: tracing
+    path: /metrics
+    interval: 15s
+  namespaceSelector:
+    matchNames:
+    - default
